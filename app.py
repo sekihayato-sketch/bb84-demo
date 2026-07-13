@@ -33,7 +33,8 @@ if st.button("シミュレーション実行"):
             eve_basis = random.choice(bases)
             eve_bases.append(eve_basis)
 
-            if eve_basis == alice_baseseve_result = alice_bits[i]
+            if eve_basis == alice_bases[i]
+               eve_result = alice_bits[i]
             else:
                 eve_result = random.randint(0, 1)
 
