@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import pandas as pd
 import hashlib
+import plotly.express as px
 
 st.set_page_config(page_title="BB84 QKD Simulator", layout="wide")
 
@@ -162,12 +163,30 @@ if st.button("シミュレーション実行", type="primary"):
         st.code(final_key, language="text")
 
     st.subheader("4. 視覚的な内訳")
-    summary_df = pd.DataFrame({
-        "項目": ["送信ビット", "基底一致", "鍵候補中の誤り", "最終鍵"],
-        "bit数": [num_bits, key_length, errors, final_key_length],
-    }).set_index("項目")
-    st.bar_chart(summary_df)
+     summary_df = pd.DataFrame({
+    "項目": [
+        "送信ビット",
+        "基底一致",
+        "鍵候補中の誤り",
+        "最終鍵"
+    ],
+    "bit数": [
+        num_bits,
+        key_length,
+        errors,
+        final_key_length
+    ]
+})
 
+fig = px.bar(
+    summary_df,
+    x="項目",
+    y="bit数",
+    text="bit数"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+    
     st.subheader("5. 送受信結果の詳細")
     df = pd.DataFrame({
         "No.": list(range(1, num_bits + 1)),
