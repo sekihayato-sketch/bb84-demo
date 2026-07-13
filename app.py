@@ -163,29 +163,39 @@ if st.button("シミュレーション実行", type="primary"):
         st.code(final_key, language="text")
 
     st.subheader("4. 視覚的な内訳")
-     summary_df = pd.DataFrame({
-    "項目": [
-        "送信ビット",
-        "基底一致",
-        "鍵候補中の誤り",
-        "最終鍵"
-    ],
-    "bit数": [
-        num_bits,
-        key_length,
-        errors,
-        final_key_length
-    ]
-})
 
-fig = px.bar(
-    summary_df,
-    x="項目",
-    y="bit数",
-    text="bit数"
-)
+    summary_df = pd.DataFrame({
+        "項目": [
+            "送信ビット",
+            "基底一致",
+            "鍵候補中の誤り",
+            "最終鍵"
+        ],
+        "bit数": [
+            num_bits,
+            key_length,
+            errors,
+            final_key_length
+        ]
+    })
 
-st.plotly_chart(fig, use_container_width=True)
+    fig = px.bar(
+        summary_df,
+        x="項目",
+        y="bit数",
+        color="項目",
+        text="bit数",
+        category_orders={
+            "項目": [
+                "送信ビット",
+                "基底一致",
+                "鍵候補中の誤り",
+                "最終鍵"
+            ]
+        }
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("5. 送受信結果の詳細")
     df = pd.DataFrame({
