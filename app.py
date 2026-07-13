@@ -234,6 +234,83 @@ if st.button("シミュレーション実行", type="primary"):
     f3.info("③ QBER評価\n\n鍵候補のAlice/Bob不一致率を計算")
     f4.info("④ EC・PA\n\n誤り訂正後、プライバシー増幅で鍵を短く圧縮")
 
+　　st.subheader("2.5 誤り訂正・プライバシー増幅の計算式")
+
+    with st.expander("計算式の説明を表示する", expanded=True):
+        st.markdown("""
+        このアプリでは、インターン説明用に以下の **簡略モデル** で誤り訂正とプライバシー増幅を表現しています。
+
+        ### 1. QBERの計算
+
+        QBERは、シフティング後の鍵候補のうち、AliceとBobで値が一致しなかった割合です。
+
+        ```text
+        QBER [%] = 誤り数 / 基底一致数 × 100
+        ```
+
+        今回の値は、
+
+        ```text
+        QBER = {errors} / {key_length} × 100 = {qber:.2f} %
+        ```
+
+        ### 2. 誤り訂正 EC: Error Correction
+
+        実際のQKDでは、AliceとBobが一部の情報を公開しながら、鍵候補の不一致を訂正します。
+
+        このアプリでは教育用に、次のように単純化しています。
+
+        ```text
+        誤り訂正後のBob鍵候補 = Alice鍵候補に一致させる
+        ```
+
+        また、誤り訂正の過程で公開された情報量を、簡略的に次のように置いています。
+
+        ```text
+        EC leakage [bit] = 誤り数
+        ```
+
+        今回の値は、
+
+        ```text
+        EC leakage = {errors} bit
+        ```
+
+        ### 3. プライバシー増幅 PA: Privacy Amplification
+
+        誤り訂正で一部の情報が漏れた可能性があるため、最終鍵は短く圧縮します。
+
+        このアプリでは、QBERが高いほど鍵を強く短縮する簡略モデルにしています。
+
+        ```text
+        safety_factor = 1 - QBER / QBERしきい値
+        ```
+
+        今回の値は、
+
+        ```text
+        safety_factor = 1 - {qber:.2f} / {qber_threshold:.2f}
+        ```
+
+        最終鍵長は次の式で計算しています。
+
+        ```text
+        最終鍵長 [bit] = int((基底一致数 - EC leakage) × safety_factor)
+        ```
+
+        今回の値は、
+
+        ```text
+        最終鍵長 = int(({key_length} - {errors}) × {safety_factor:.3f})
+                 = {final_key_length} bit
+        ```
+
+        ### 注意
+
+        このEC/PAは、理解しやすさを優先した簡略モデルです。  
+        実際のQKD装置では、Cascade、LDPC、Toeplitz hashingなど、より厳密な誤り訂正・秘匿性増幅処理が使われます。
+        """)
+    
     st.subheader("3. 鍵の変化")
     k1, k2 = st.columns(2)
     with k1:
