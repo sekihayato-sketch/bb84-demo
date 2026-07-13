@@ -2,12 +2,13 @@ import streamlit as st
 import random
 import pandas as pd
 import hashlib
+import time
 import plotly.express as px
 
 st.set_page_config(page_title="BB84 QKD Simulator", layout="wide")
 
 st.title("BB84量子鍵配送シミュレータ")
-st.caption("シフティング → QBER評価 → 誤り訂正 → プライバシー増幅までを体験する教育用アプリ")
+st.caption("シフティング -> QBER評価 -> 誤り訂正 -> プライバシー増幅までを体験する教育用アプリ")
 
 st.markdown("""
 このアプリでは、BB84プロトコルにおける **基底選択**、**シフティング**、**QBERによる鍵破棄判定**、
@@ -23,17 +24,23 @@ with st.sidebar:
     eve_rate = st.slider("Eveが介入する割合 [%]", 0, 100, 100, step=5, disabled=not eve_enabled)
     noise_rate = st.slider("通信路ノイズ率 [%]", 0, 20, 0, step=1)
     qber_threshold = st.slider("鍵破棄しきい値 QBER [%]", 0.0, 20.0, 11.0, step=0.5)
+    animation_speed = st.slider("アニメーション速度", 0.1, 1.5, 0.6, step=0.1)
+    show_animation = st.checkbox("処理の流れをアニメーション表示", value=True)
     st.caption("教育用として、QBERがこのしきい値以下なら鍵生成処理へ進む設定です。")
 
 bases = ["+", "×"]
 
-basis_label = {
-    "+": "＋基底",
-    "×": "×基底",
-}
 
 def bits_to_string(bits):
     return "".join(str(b) for b in bits) if bits else "-"
+
+
+def short_bits(bits, max_len=64):
+    text = bits_to_string(bits)
+    if len(text) > max_len:
+        return text[:max_len] + " ..."
+    return text
+
 
 def hash_to_bits(text, length):
     if length <= 0:
@@ -44,6 +51,85 @@ def hash_to_bits(text, length):
         digest = hashlib.sha256((bit_string + text).encode("utf-8")).digest()
         bit_string += "".join(f"{byte:08b}" for byte in digest)
     return bit_string[:length]
+
+
+def render_flow(active_step, status_text):
+    steps = [
+        ("Alice", "ビット・基底生成"),
+        ("量子チャネル", "量子状態を送信"),
+        ("Eve", "盗聴・測定"),
+        ("Bob", "ランダム基底で測定"),
+        ("Sifting", "基底一致だけ採用"),
+        ("QBER", "誤り率を評価"),
+        ("EC", "誤り訂正"),
+        ("PA", "プライバシー増幅"),
+        ("Final Key", "最終鍵生成"),
+    ]
+
+    st.markdown("#### BB84処理の流れ")
+    cols = st.columns(len(steps))
+    for idx, (title, subtitle) in enumerate(steps):
+        if idx < active_step:
+            color = "#d9f2e6"
+            border = "#20a060"
+            mark = "OK"
+        elif idx == active_step:
+            color = "#fff3cd"
+            border = "#f0ad00"
+            mark = "NOW"
+        else:
+            color = "#f3f4f6"
+            border = "#c7c7c7"
+            mark = "WAIT"
+
+        with cols[idx]:
+            st.markdown(
+                f"""
+                <div style='border:2px solid {border}; background:{color}; border-radius:12px; padding:10px; text-align:center; min-height:110px;'>
+                    <div style='font-size:13px; font-weight:bold;'>{mark}</div>
+                    <div style='font-size:20px; font-weight:bold; margin-top:5px;'>{title}</div>
+                    <div style='font-size:12px; margin-top:6px;'>{subtitle}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    st.info(status_text)
+
+
+def run_animation(alice_bits, alice_key, bob_key, corrected_bob_key, final_key, qber, can_generate_key):
+    placeholder = st.empty()
+    animation_steps = [
+        (0, "Aliceがランダムなビット列と送信用基底を生成しています。"),
+        (1, "Aliceが量子状態を量子チャネルへ送信しています。"),
+        (2, "Eveが設定条件に従って一部または全部の量子状態を測定します。基底が違うと状態が乱れる可能性があります。"),
+        (3, "Bobがランダムに選んだ基底で測定しています。"),
+        (4, "AliceとBobが基底情報だけを公開し、一致した位置だけを鍵候補に残します。"),
+        (5, f"鍵候補の誤り率 QBER を評価しています。今回のQBERは {qber:.2f}% です。"),
+        (6, "QBERがしきい値以下の場合、簡略化した誤り訂正でBob側の鍵候補をAlice側にそろえます。"),
+        (7, "誤り訂正で漏れた情報を考慮し、プライバシー増幅で鍵を短く圧縮します。"),
+        (8, "最終鍵生成結果を表示します。"),
+    ]
+
+    progress = st.progress(0)
+    for index, (step_no, message) in enumerate(animation_steps):
+        with placeholder.container():
+            render_flow(step_no, message)
+            if step_no == 0:
+                st.code("Alice送信ビット: " + short_bits(alice_bits), language="text")
+            elif step_no == 4:
+                st.code("Alice鍵候補: " + short_bits(alice_key), language="text")
+                st.code("Bob鍵候補  : " + short_bits(bob_key), language="text")
+            elif step_no == 6:
+                st.code("誤り訂正後 Bob鍵候補: " + short_bits(corrected_bob_key), language="text")
+            elif step_no == 8:
+                if can_generate_key and final_key != "-":
+                    st.success("最終鍵生成成功")
+                    st.code("Final Key: " + final_key, language="text")
+                else:
+                    st.error("最終鍵は生成されませんでした。鍵候補を破棄します。")
+        progress.progress((index + 1) / len(animation_steps))
+        time.sleep(animation_speed)
+
 
 if st.button("シミュレーション実行", type="primary"):
     alice_bits = [random.randint(0, 1) for _ in range(num_bits)]
@@ -104,17 +190,13 @@ if st.button("シミュレーション実行", type="primary"):
 
     can_generate_key = key_length > 0 and qber <= qber_threshold
 
-    # 簡略化した誤り訂正：説明用に、不一致箇所を検出してBob側をAlice側に合わせるモデル
     if can_generate_key:
         corrected_bob_key = alice_key.copy()
-        corrected_errors = 0
         ec_leakage_bits = errors
     else:
         corrected_bob_key = bob_key.copy()
-        corrected_errors = errors
         ec_leakage_bits = 0
 
-    # 簡略化したプライバシー増幅：QBERと誤り訂正で漏れた情報量に応じて鍵を短く圧縮するモデル
     if can_generate_key:
         safety_factor = max(0.0, 1.0 - qber / qber_threshold) if qber_threshold > 0 else 0.0
         final_key_length = max(0, int((key_length - ec_leakage_bits) * safety_factor))
@@ -122,6 +204,9 @@ if st.button("シミュレーション実行", type="primary"):
     else:
         final_key_length = 0
         final_key = "-"
+
+    if show_animation:
+        run_animation(alice_bits, alice_key, bob_key, corrected_bob_key, final_key, qber, can_generate_key)
 
     st.subheader("1. 全体結果")
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -165,18 +250,8 @@ if st.button("シミュレーション実行", type="primary"):
     st.subheader("4. 視覚的な内訳")
 
     summary_df = pd.DataFrame({
-        "項目": [
-            "送信ビット",
-            "基底一致",
-            "鍵候補中の誤り",
-            "最終鍵"
-        ],
-        "bit数": [
-            num_bits,
-            key_length,
-            errors,
-            final_key_length
-        ]
+        "項目": ["送信ビット", "基底一致", "鍵候補中の誤り", "最終鍵"],
+        "bit数": [num_bits, key_length, errors, final_key_length],
     })
 
     fig = px.bar(
@@ -185,18 +260,13 @@ if st.button("シミュレーション実行", type="primary"):
         y="bit数",
         color="項目",
         text="bit数",
-        category_orders={
-            "項目": [
-                "送信ビット",
-                "基底一致",
-                "鍵候補中の誤り",
-                "最終鍵"
-            ]
-        }
+        category_orders={"項目": ["送信ビット", "基底一致", "鍵候補中の誤り", "最終鍵"]},
     )
+    fig.update_traces(textposition="outside")
+    fig.update_layout(showlegend=False, yaxis_title="bit数", xaxis_title="")
 
     st.plotly_chart(fig, use_container_width=True)
-    
+
     st.subheader("5. 送受信結果の詳細")
     df = pd.DataFrame({
         "No.": list(range(1, num_bits + 1)),
