@@ -238,7 +238,7 @@ if st.button("シミュレーション実行", type="primary"):
     st.subheader("2.5 誤り訂正・プライバシー増幅の計算式")
 
     with st.expander("計算式の説明を表示する", expanded=True):
-        st.markdown("""
+        st.markdown(f"""
         このアプリでは、インターン説明用に以下の **簡略モデル** で誤り訂正とプライバシー増幅を表現しています。
 
         ### 1. QBERの計算
