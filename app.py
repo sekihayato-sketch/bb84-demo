@@ -49,7 +49,6 @@ with st.sidebar:
     qber_threshold = st.slider("鍵破棄しきい値 QBER [%]", 0.0, 20.0, 11.0, step=0.5)
     animation_speed = st.slider("アニメーション速度", 0.1, 1.5, 0.6, step=0.1)
     show_animation = st.checkbox("処理の流れをアニメーション表示", value=True)
-    st.caption("教育用として、QBERがこのしきい値以下なら鍵生成処理へ進む設定です。")
 
 bases = ["+", "×"]
 
