@@ -8,13 +8,13 @@ import plotly.express as px
 st.set_page_config(page_title="BB84 QKD Simulator", layout="wide")
 
 st.title("BB84量子鍵配送シミュレータ")
-st.caption("シフティング -> QBER評価 -> 誤り訂正 -> プライバシー増幅までを体験する教育用アプリ")
+st.caption("シフティング -> QBER評価 -> 誤り訂正 -> 秘匿性増幅までを体験する教育用アプリ")
 
 st.markdown("""
 このアプリでは、BB84プロトコルにおける **基底選択**、**シフティング**、**QBERによる鍵破棄判定**、
-簡略化した **誤り訂正** と **プライバシー増幅** を確認できます。
+簡略化した **誤り訂正** と **秘匿性増幅** を確認できます。
 
-※ 誤り訂正とプライバシー増幅は、インターン説明用の簡略モデルです。実際のQKD装置で使う実装とは異なります。
+※ 誤り訂正と秘匿性増幅は、インターン説明用の簡略モデルです。実際のQKD装置で使う実装とは異なります。
 """)
 
 with st.sidebar:
@@ -62,7 +62,7 @@ def render_flow(active_step, status_text):
         ("Sifting", "基底一致だけ採用"),
         ("QBER", "誤り率を評価"),
         ("EC", "誤り訂正"),
-        ("PA", "プライバシー増幅"),
+        ("PA", "秘匿性増幅"),
         ("Final Key", "最終鍵生成"),
     ]
 
@@ -106,7 +106,7 @@ def run_animation(alice_bits, alice_key, bob_key, corrected_bob_key, final_key, 
         (4, "AliceとBobが基底情報だけを公開し、一致した位置だけを鍵候補に残します。"),
         (5, f"鍵候補の誤り率 QBER を評価しています。今回のQBERは {qber:.2f}% です。"),
         (6, "QBERがしきい値以下の場合、簡略化した誤り訂正でBob側の鍵候補をAlice側にそろえます。"),
-        (7, "誤り訂正で漏れた情報を考慮し、プライバシー増幅で鍵を短く圧縮します。"),
+        (7, "誤り訂正で漏れた情報を考慮し、秘匿性増幅で鍵を短く圧縮します。"),
         (8, "最終鍵生成結果を表示します。"),
     ]
 
@@ -222,9 +222,9 @@ if st.button("シミュレーション実行", type="primary"):
     st.progress(progress_value)
 
     if can_generate_key and final_key_length > 0:
-        st.success("QBERがしきい値以下です。誤り訂正とプライバシー増幅を行い、最終鍵を生成できます。")
+        st.success("QBERがしきい値以下です。誤り訂正と秘匿性増幅を行い、最終鍵を生成できます。")
     elif can_generate_key and final_key_length == 0:
-        st.warning("QBERはしきい値以下ですが、プライバシー増幅後の鍵長が0 bitになりました。送信ビット数を増やすか、誤りを減らしてください。")
+        st.warning("QBERはしきい値以下ですが、秘匿性増幅後の鍵長が0 bitになりました。送信ビット数を増やすか、誤りを減らしてください。")
     else:
         st.error("QBERがしきい値を超えています。安全な鍵生成は行わず、鍵候補を破棄します。")
 
@@ -233,13 +233,13 @@ if st.button("シミュレーション実行", type="primary"):
     f1.info("① 量子送信\n\nAliceがビットと基底をランダムに選んで送信")
     f2.info("② シフティング\n\nAliceとBobの基底が一致した位置だけ鍵候補に採用")
     f3.info("③ QBER評価\n\n鍵候補のAlice/Bob不一致率を計算")
-    f4.info("④ EC・PA\n\n誤り訂正後、プライバシー増幅で鍵を短く圧縮")
+    f4.info("④ EC・PA\n\n誤り訂正後、秘匿性増幅で鍵を短く圧縮")
 
-    st.subheader("2.5 誤り訂正・プライバシー増幅の計算式")
+    st.subheader("2.5 誤り訂正・秘匿性増幅の計算式")
 
     with st.expander("計算式の説明を表示する", expanded=True):
         st.markdown(f"""
-        このアプリでは、インターン説明用に以下の **簡略モデル** で誤り訂正とプライバシー増幅を表現しています。
+        このアプリでは、インターン説明用に以下の **簡略モデル** で誤り訂正と秘匿性増幅を表現しています。
 
         ### 1. QBERの計算
 
@@ -277,7 +277,7 @@ if st.button("シミュレーション実行", type="primary"):
         EC leakage = {errors} bit
         ```
 
-        ### 3. プライバシー増幅 PA: Privacy Amplification
+        ### 3. 秘匿性増幅 PA: Privacy Amplification
 
         誤り訂正で一部の情報が漏れた可能性があるため、最終鍵は短く圧縮します。
 
@@ -322,7 +322,7 @@ if st.button("シミュレーション実行", type="primary"):
     with k2:
         st.markdown("**誤り訂正後のBob鍵候補（簡略モデル）**")
         st.code(bits_to_string(corrected_bob_key), language="text")
-        st.markdown("**プライバシー増幅後の最終鍵（簡略モデル）**")
+        st.markdown("**秘匿性増幅後の最終鍵（簡略モデル）**")
         st.code(final_key, language="text")
 
     st.subheader("4. 視覚的な内訳")
