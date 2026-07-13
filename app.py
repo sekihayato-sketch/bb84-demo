@@ -197,8 +197,9 @@ if st.button("シミュレーション実行", type="primary"):
         corrected_bob_key = bob_key.copy()
         ec_leakage_bits = 0
 
+    safety_factor = max(0.0, 1.0 - qber / qber_threshold) if qber_threshold > 0 else 0.0
+
     if can_generate_key:
-        safety_factor = max(0.0, 1.0 - qber / qber_threshold) if qber_threshold > 0 else 0.0
         final_key_length = max(0, int((key_length - ec_leakage_bits) * safety_factor))
         final_key = hash_to_bits(bits_to_string(corrected_bob_key), final_key_length)
     else:
@@ -234,7 +235,7 @@ if st.button("シミュレーション実行", type="primary"):
     f3.info("③ QBER評価\n\n鍵候補のAlice/Bob不一致率を計算")
     f4.info("④ EC・PA\n\n誤り訂正後、プライバシー増幅で鍵を短く圧縮")
 
-　　st.subheader("2.5 誤り訂正・プライバシー増幅の計算式")
+    st.subheader("2.5 誤り訂正・プライバシー増幅の計算式")
 
     with st.expander("計算式の説明を表示する", expanded=True):
         st.markdown("""
