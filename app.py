@@ -43,7 +43,24 @@ with st.expander("通信ノイズについて", expanded=False):
 
 with st.sidebar:
     st.header("シミュレーション条件")
-    num_bits = st.slider("送信ビット数", 8, 256, 32, step=8)
+    num_bits = st.select_slider(
+        "送信ビット数",
+        options=[
+            32,
+            64,
+            128,
+            256,
+            512,
+            1024,
+            4096,
+            16384,
+            65536,
+            262144,
+            1048576
+        ],
+        value=4096
+    )
+    
     eve_enabled = st.checkbox("Eveによる盗聴を有効化", value=True)
     eve_rate = st.slider("Eveが介入する割合 [%]", 0, 100, 100, step=5, disabled=not eve_enabled)
     noise_rate = st.slider("通信路ノイズ率 [%]", 0, 20, 0, step=1)
@@ -465,12 +482,20 @@ if st.button("シミュレーション実行", type="primary"):
         final_key = "-"
 
     if show_bit_motion:
-        animate_bit_transmission(
-            alice_bits=alice_bits,
-            bob_results=bob_results,
-            eve_intervened=eve_intervened,
-            max_bits=num_bits,
-            frame_delay=0.08
+    animated_bits = min(num_bits, 256)
+
+    if animated_bits < num_bits:
+        st.caption(
+            f"送信ビット数は {num_bits:,} bit ですが、"
+            f"アニメーションは表示負荷を避けるため先頭 {animated_bits} bit のみ表示しています。"
+        )
+
+    animate_bit_transmission(
+        alice_bits=alice_bits,
+        bob_results=bob_results,
+        eve_intervened=eve_intervened,
+        max_bits=animated_bits,
+        frame_delay=0.08
     )
     
     if show_animation:
@@ -641,7 +666,16 @@ if st.button("シミュレーション実行", type="primary"):
             return ["background-color: #e8f5e9"] * len(row)
         return ["background-color: #f5f5f5"] * len(row)
 
-    st.dataframe(df.style.apply(highlight_rows, axis=1), use_container_width=True)
+    max_display_rows = 500
+
+    df_display = df.head(max_display_rows)
+
+    st.caption(
+        f"詳細表は先頭 {max_display_rows} 行のみ表示しています。"
+        f" 計算は全 {num_bits:,} bit に対して実行しています。"
+    )
+
+    st.dataframe(df_display.style.apply(highlight_rows, axis=1), use_container_width=True)
 
     with st.expander("この表の見方"):
         st.markdown("""
