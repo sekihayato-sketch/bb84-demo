@@ -127,21 +127,21 @@ def render_flow(active_step, status_text):
             )
     st.info(status_text)
 
-def bit_list_to_html(bits, current_index=None, max_len=32):
+def bit_list_to_html(bits, current_index=None, max_len=12):
     html = ""
-    for i, bit in enumerate(bits[:max_len]):
+
+    display_bits = bits[:max_len]
+
+    for i, bit in enumerate(display_bits):
         active = i == current_index
         bg = "#2563eb" if str(bit) == "1" else "#0f766e"
         border = "3px solid #facc15" if active else "1px solid #d1d5db"
 
         html += (
-            f"<span style='display:inline-block; margin:2px; padding:4px 7px; "
-            f"border-radius:8px; background:{bg}; color:white; border:{border}; "
-            f"font-weight:700;'>{bit}</span>"
+            f"<span style='display:inline-block; margin:3px; padding:6px 10px; "
+            f"border-radius:9px; background:{bg}; color:white; border:{border}; "
+            f"font-weight:800; font-size:20px;'>{bit}</span>"
         )
-
-    if len(bits) > max_len:
-        html += "<span style='margin-left:6px;'>...</span>"
 
     return html
 
@@ -155,7 +155,8 @@ def render_bit_motion_frame(
     eve_hit,
     bob_bit,
     alice_bits,
-    bob_results
+    bob_results,
+    show_ball=True
 ):
     left = 5 + phase * 78
 
@@ -164,68 +165,84 @@ def render_bit_motion_frame(
     eve_border = "#dc2626" if eve_hit else "#9ca3af"
     eve_label = "Eve測定" if eve_hit else "Eve待機"
 
-    html = f"""
-    <div style='border:1px solid #d1d5db; border-radius:16px; padding:18px; background:#ffffff;'>
-
-      <div style='font-weight:700; margin-bottom:10px;'>
-        送信ビット {index + 1} / {total}：AliceからBobへ量子状態を送信中
-      </div>
-
-      <div style='position:relative; height:190px;
-                  background:linear-gradient(90deg,#eff6ff,#ffffff,#f0fdf4);
-                  border-radius:14px; overflow:hidden;'>
-
-        <div style='position:absolute; left:2%; top:50px; width:120px; height:80px;
-                    border:2px solid #2563eb; background:#dbeafe; border-radius:14px;
-                    text-align:center; padding-top:14px; font-weight:800;'>
-          Alice<br><span style='font-size:26px;'>TX</span>
-        </div>
-
-        <div style='position:absolute; left:44%; top:45px; width:120px; height:90px;
-                    border:2px solid {eve_border}; background:{eve_color}; border-radius:14px;
-                    text-align:center; padding-top:12px; font-weight:800; display:{eve_display};'>
-          Eve<br><span style='font-size:15px;'>{eve_label}</span>
-        </div>
-
-        <div style='position:absolute; right:2%; top:50px; width:120px; height:80px;
-                    border:2px solid #16a34a; background:#dcfce7; border-radius:14px;
-                    text-align:center; padding-top:14px; font-weight:800;'>
-          Bob<br><span style='font-size:26px;'>RX</span>
-        </div>
-
-        <div style='position:absolute; left:140px; right:140px; top:91px;
-                    height:8px; background:#94a3b8; border-radius:99px;'>
-        </div>
-
+    ball_html = ""
+    if show_ball:
+        ball_html = f"""
         <div style='position:absolute; left:{left}%; top:68px; width:54px; height:54px;
                     border-radius:50%; background:#111827; color:#ffffff;
                     display:flex; align-items:center; justify-content:center;
                     font-size:30px; font-weight:900;
-                    box-shadow:0 0 18px rgba(37,99,235,0.7);'>
+                    box-shadow:0 0 18px rgba(37,99,235,0.7);
+                    z-index:4;'>
           {bit}
         </div>
+        """
 
-        <div style='position:absolute; left:2%; bottom:12px; font-size:13px;'>
+    html = f"""
+    <div style='border:1px solid #d1d5db; border-radius:16px; padding:18px; background:#ffffff;'>
+
+      <div style='font-weight:700; margin-bottom:10px; font-size:20px;'>
+        送信ビット {index + 1} / {total}：AliceからBobへ量子状態を送信中
+      </div>
+
+      <div style='position:relative; height:210px;
+                  background:linear-gradient(90deg,#eff6ff,#ffffff,#f0fdf4);
+                  border-radius:14px; overflow:hidden;'>
+
+        <div style='position:absolute; left:2%; top:50px; width:150px; height:90px;
+                    border:3px solid #2563eb; background:#dbeafe; border-radius:18px;
+                    text-align:center; padding-top:18px; font-weight:900;
+                    font-size:24px; z-index:3;'>
+          Alice<br><span style='font-size:36px;'>TX</span>
+        </div>
+
+        <div style='position:absolute; left:44%; top:42px; width:150px; height:105px;
+                    border:3px solid {eve_border}; background:{eve_color}; border-radius:18px;
+                    text-align:center; padding-top:18px; font-weight:900;
+                    font-size:24px; display:{eve_display}; z-index:6;'>
+          Eve<br><span style='font-size:20px;'>{eve_label}</span>
+        </div>
+
+        <div style='position:absolute; right:2%; top:50px; width:150px; height:90px;
+                    border:3px solid #16a34a; background:#dcfce7; border-radius:18px;
+                    text-align:center; padding-top:18px; font-weight:900;
+                    font-size:24px; z-index:3;'>
+          Bob<br><span style='font-size:36px;'>RX</span>
+        </div>
+
+        <div style='position:absolute; left:180px; right:180px; top:96px;
+                    height:10px; background:#94a3b8; border-radius:99px;
+                    z-index:1;'>
+        </div>
+
+        {ball_html}
+
+        <div style='position:absolute; left:2%; bottom:14px; font-size:18px; z-index:3;'>
           Alice bit = <b>{bit}</b>
         </div>
 
-        <div style='position:absolute; right:2%; bottom:12px; font-size:13px;'>
+        <div style='position:absolute; right:2%; bottom:14px; font-size:18px; z-index:3;'>
           Bob result = <b>{bob_bit}</b>
         </div>
       </div>
 
-      <div style='margin-top:12px;'>
-        <div><b>Alice送信列</b></div>
-        <div>{bit_list_to_html(alice_bits, index)}</div>
+      <div style='margin-top:20px;'>
+        <div style='font-size:22px; font-weight:800;'>Alice送信列</div>
+        <div>
+          {bit_list_to_html(alice_bits, index, max_len=total)}
+        </div>
 
-        <div style='margin-top:8px;'><b>Bob受信列</b></div>
-        <div>{bit_list_to_html(bob_results, index)}</div>
+        <div style='margin-top:14px; font-size:22px; font-weight:800;'>Bob受信列</div>
+        <div>
+          {bit_list_to_html(bob_results, index, max_len=total)}
+        </div>
       </div>
 
     </div>
     """
 
-    components.html(html, height=430, scrolling=False)
+    components.html(html, height=560, scrolling=False)
+
 
 def animate_bit_transmission(
     alice_bits,
@@ -237,25 +254,48 @@ def animate_bit_transmission(
     st.subheader("0. 量子ビット送信アニメーション")
     st.caption("AliceからBobへ、0/1の量子状態が順番に送られる様子を簡略表示します。")
 
-    total = min(max_bits, len(alice_bits))
+    total = min(max_bits, len(alice_bits), len(bob_results))
+
+    display_alice_bits = alice_bits[:total]
+    display_bob_results = bob_results[:total]
+    display_eve_intervened = eve_intervened[:total]
+
     placeholder = st.empty()
 
     for i in range(total):
         for phase in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
+            placeholder.empty()
             with placeholder.container():
                 render_bit_motion_frame(
-                    bit=alice_bits[i],
+                    bit=display_alice_bits[i],
                     index=i,
                     total=total,
                     phase=phase,
-                    eve_on=any(x == "○" for x in eve_intervened),
-                    eve_hit=eve_intervened[i] == "○",
-                    bob_bit=bob_results[i],
-                    alice_bits=alice_bits,
-                    bob_results=bob_results,
+                    eve_on=any(x == "○" for x in display_eve_intervened),
+                    eve_hit=display_eve_intervened[i] == "○",
+                    bob_bit=display_bob_results[i],
+                    alice_bits=display_alice_bits,
+                    bob_results=display_bob_results,
+                    show_ball=True
                 )
 
             time.sleep(frame_delay)
+
+    # 最終フレーム：最後のビットはハイライトしたまま、移動中のボールだけ消す
+    placeholder.empty()
+    with placeholder.container():
+        render_bit_motion_frame(
+            bit=display_alice_bits[-1],
+            index=total - 1,
+            total=total,
+            phase=1.0,
+            eve_on=any(x == "○" for x in display_eve_intervened),
+            eve_hit=display_eve_intervened[-1] == "○",
+            bob_bit=display_bob_results[-1],
+            alice_bits=display_alice_bits,
+            bob_results=display_bob_results,
+            show_ball=False
+        )
 
 def run_animation(alice_bits, alice_key, bob_key, corrected_bob_key, final_key, qber, can_generate_key):
     placeholder = st.empty()
