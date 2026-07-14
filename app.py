@@ -4,6 +4,7 @@ import pandas as pd
 import hashlib
 import time
 import plotly.express as px
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="BB84 QKD Simulator", layout="wide")
 
@@ -224,7 +225,7 @@ def render_bit_motion_frame(
     </div>
     """
 
-    st.markdown(html, unsafe_allow_html=True)
+    components.html(html, height=430, scrolling=False)
 
 def animate_bit_transmission(
     alice_bits,
