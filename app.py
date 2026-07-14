@@ -171,8 +171,8 @@ def render_bit_motion_frame(
     # Alice列 / Bob列が何行になるか計算
     row_count = (total + bits_per_row - 1) // bits_per_row
 
-    # 行数に応じてHTMLコンポーネントの高さを増やす
-    component_height = 430 + row_count * 80
+    # Alice列とBob列の2セット分 + 見出し + 余白を十分に確保
+    component_height = 470 + row_count * row_height * 2
 
     ball_html = ""
     if show_ball:
