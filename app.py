@@ -127,10 +127,13 @@ def render_flow(active_step, status_text):
             )
     st.info(status_text)
 
-def bit_list_to_html(bits, current_index=None, max_len=12):
+def bit_list_to_html(bits, current_index=None, max_len=None, bit_size=20):
     html = ""
 
-    display_bits = bits[:max_len]
+    if max_len is None:
+        display_bits = bits
+    else:
+        display_bits = bits[:max_len]
 
     for i, bit in enumerate(display_bits):
         active = i == current_index
@@ -138,13 +141,15 @@ def bit_list_to_html(bits, current_index=None, max_len=12):
         border = "3px solid #facc15" if active else "1px solid #d1d5db"
 
         html += (
-            f"<span style='display:inline-block; margin:3px; padding:6px 10px; "
+            f"<span style='display:inline-block; margin:3px; "
+            f"padding:{max(4, bit_size // 4)}px {max(7, bit_size // 2)}px; "
             f"border-radius:9px; background:{bg}; color:white; border:{border}; "
-            f"font-weight:800; font-size:20px;'>{bit}</span>"
+            f"font-weight:800; font-size:{bit_size}px; "
+            f"min-width:{bit_size + 12}px; text-align:center;'>"
+            f"{bit}</span>"
         )
 
     return html
-
 
 def render_bit_motion_frame(
     bit,
@@ -165,14 +170,32 @@ def render_bit_motion_frame(
     eve_border = "#dc2626" if eve_hit else "#9ca3af"
     eve_label = "Eve測定" if eve_hit else "Eve待機"
 
-    # 1行あたりの表示数
-    bits_per_row = 18
+    # ビット数に応じて表示サイズ・1行あたりの想定数・行高さを自動調整
+    if total <= 16:
+        bits_per_row = 16
+        bit_size = 24
+        row_height = 76
+    elif total <= 32:
+        bits_per_row = 18
+        bit_size = 22
+        row_height = 76
+    elif total <= 64:
+        bits_per_row = 24
+        bit_size = 18
+        row_height = 66
+    elif total <= 128:
+        bits_per_row = 32
+        bit_size = 15
+        row_height = 58
+    else:
+        bits_per_row = 40
+        bit_size = 13
+        row_height = 52
 
-    # Alice列 / Bob列が何行になるか計算
     row_count = (total + bits_per_row - 1) // bits_per_row
 
-    # Alice列とBob列の2セット分 + 見出し + 余白を十分に確保
-    component_height = 470 + row_count * row_height * 2
+    # Bob側が見切れないように、下側をかなり余裕ありにする
+    component_height = 520 + row_count * row_height * 2
 
     ball_html = ""
     if show_ball:
@@ -188,7 +211,7 @@ def render_bit_motion_frame(
         """
 
     html = f"""
-    <div style='border:1px solid #d1d5db; border-radius:16px; padding:18px; background:#ffffff;'>
+    <div style='border:1px solid #d1d5db; border-radius:16px; padding:18px 18px 80px 18px; background:#ffffff;'>
 
       <div style='font-weight:700; margin-bottom:10px; font-size:20px;'>
         送信ビット {index + 1} / {total}：AliceからBobへ量子状態を送信中
@@ -238,13 +261,13 @@ def render_bit_motion_frame(
 
       <div style='margin-top:20px;'>
         <div style='font-size:22px; font-weight:800;'>Alice送信列</div>
-        <div style='line-height:2.7;'>
-          {bit_list_to_html(alice_bits, index, max_len=total)}
+        <div style='line-height:{row_height}px; margin-bottom:24px;'>
+          {bit_list_to_html(alice_bits, index, max_len=total, bit_size=bit_size)}
         </div>
 
-        <div style='margin-top:14px; font-size:22px; font-weight:800;'>Bob受信列</div>
-        <div style='line-height:2.7;'>
-          {bit_list_to_html(bob_results, index, max_len=total)}
+        <div style='font-size:22px; font-weight:800;'>Bob受信列</div>
+        <div style='line-height:{row_height}px; margin-bottom:40px;'>
+          {bit_list_to_html(bob_results, index, max_len=total, bit_size=bit_size)}
         </div>
       </div>
 
@@ -252,7 +275,7 @@ def render_bit_motion_frame(
     """
 
     components.html(html, height=component_height, scrolling=False)
-
+    
 def animate_bit_transmission(
     alice_bits,
     bob_results,
