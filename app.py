@@ -226,7 +226,6 @@ def render_bit_motion_frame(
 
     st.markdown(html, unsafe_allow_html=True)
 
-
 def animate_bit_transmission(
     alice_bits,
     bob_results,
