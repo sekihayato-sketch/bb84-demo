@@ -482,13 +482,13 @@ if st.button("シミュレーション実行", type="primary"):
         final_key = "-"
 
     if show_bit_motion:
-    animated_bits = min(num_bits, 256)
+        animated_bits = min(num_bits, 256)
 
-    if animated_bits < num_bits:
-        st.caption(
-            f"送信ビット数は {num_bits:,} bit ですが、"
-            f"アニメーションは表示負荷を避けるため先頭 {animated_bits} bit のみ表示しています。"
-        )
+        if animated_bits < num_bits:
+            st.caption(
+                f"送信ビット数は {num_bits:,} bit ですが、"
+                f"アニメーションは表示負荷を避けるため先頭 {animated_bits} bit のみ表示しています。"
+            )
 
     animate_bit_transmission(
         alice_bits=alice_bits,
