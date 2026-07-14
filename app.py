@@ -409,11 +409,11 @@ if st.button("シミュレーション実行", type="primary"):
 
     if show_bit_motion:
         animate_bit_transmission(
-           alice_bits=alice_bits,
-           bob_results=bob_results,
-           eve_intervened=eve_intervened,
-           max_bits=max_animated_bits,
-           frame_delay=0.08
+            alice_bits=alice_bits,
+            bob_results=bob_results,
+            eve_intervened=eve_intervened,
+            max_bits=num_bits,
+            frame_delay=0.08
     )
     
     if show_animation:
