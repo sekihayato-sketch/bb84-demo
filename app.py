@@ -127,28 +127,35 @@ def render_flow(active_step, status_text):
             )
     st.info(status_text)
 
-def bit_list_to_html(bits, current_index=None, max_len=None, bit_size=20):
-    html = ""
-
+def bit_list_to_html(bits, current_index=None, max_len=None, bits_per_row=16, bit_size=20):
     if max_len is None:
         display_bits = bits
     else:
         display_bits = bits[:max_len]
 
+    cell_width = bit_size + 34
+    cell_height = bit_size + 38
+
+    html = (
+        f"<div style='display:grid; "
+        f"grid-template-columns:repeat({bits_per_row}, {cell_width}px); "
+        f"gap:8px; align-items:center;'>"
+    )
+
     for i, bit in enumerate(display_bits):
         active = i == current_index
         bg = "#2563eb" if str(bit) == "1" else "#0f766e"
-        border = "3px solid #facc15" if active else "1px solid #d1d5db"
+        border = "4px solid #facc15" if active else "1px solid #d1d5db"
 
         html += (
-            f"<span style='display:inline-block; margin:3px; "
-            f"padding:{max(4, bit_size // 4)}px {max(7, bit_size // 2)}px; "
-            f"border-radius:9px; background:{bg}; color:white; border:{border}; "
-            f"font-weight:800; font-size:{bit_size}px; "
-            f"min-width:{bit_size + 12}px; text-align:center;'>"
-            f"{bit}</span>"
+            f"<div style='width:{cell_width}px; height:{cell_height}px; "
+            f"border-radius:10px; background:{bg}; color:white; border:{border}; "
+            f"display:flex; align-items:center; justify-content:center; "
+            f"font-weight:900; font-size:{bit_size}px; box-sizing:border-box;'>"
+            f"{bit}</div>"
         )
 
+    html += "</div>"
     return html
 
 def render_bit_motion_frame(
@@ -170,32 +177,37 @@ def render_bit_motion_frame(
     eve_border = "#dc2626" if eve_hit else "#9ca3af"
     eve_label = "Eve測定" if eve_hit else "Eve待機"
 
-    # ビット数に応じて表示サイズ・1行あたりの想定数・行高さを自動調整
+    # ビット数に応じて、1行あたりの表示数とサイズを調整
     if total <= 16:
         bits_per_row = 16
         bit_size = 24
-        row_height = 76
     elif total <= 32:
-        bits_per_row = 18
+        bits_per_row = 16
         bit_size = 22
-        row_height = 76
     elif total <= 64:
-        bits_per_row = 24
+        bits_per_row = 16
+        bit_size = 20
+    elif total <= 96:
+        bits_per_row = 16
         bit_size = 18
-        row_height = 66
     elif total <= 128:
-        bits_per_row = 32
-        bit_size = 15
-        row_height = 58
+        bits_per_row = 20
+        bit_size = 16
     else:
-        bits_per_row = 40
-        bit_size = 13
-        row_height = 52
+        bits_per_row = 24
+        bit_size = 14
 
     row_count = (total + bits_per_row - 1) // bits_per_row
 
-    # Bob側が見切れないように、下側をかなり余裕ありにする
-    component_height = 520 + row_count * row_height * 2
+    cell_height = bit_size + 38
+
+    # 上部アニメーション領域 + Alice列 + Bob列 + 見出し + 余白
+    component_height = (
+        320
+        + row_count * cell_height
+        + row_count * cell_height
+        + 220
+    )
 
     ball_html = ""
     if show_ball:
@@ -211,7 +223,9 @@ def render_bit_motion_frame(
         """
 
     html = f"""
-    <div style='border:1px solid #d1d5db; border-radius:16px; padding:18px 18px 80px 18px; background:#ffffff;'>
+    <div style='border:1px solid #d1d5db; border-radius:16px;
+                padding:18px 18px 120px 18px; background:#ffffff;
+                box-sizing:border-box;'>
 
       <div style='font-weight:700; margin-bottom:10px; font-size:20px;'>
         送信ビット {index + 1} / {total}：AliceからBobへ量子状態を送信中
@@ -224,7 +238,7 @@ def render_bit_motion_frame(
         <div style='position:absolute; left:2%; top:50px; width:150px; height:90px;
                     border:3px solid #2563eb; background:#dbeafe; border-radius:18px;
                     text-align:center; padding-top:18px; font-weight:900;
-                    font-size:24px; z-index:5;'>
+                    font-size:24px; z-index:5; box-sizing:border-box;'>
           Alice<br><span style='font-size:36px;'>TX</span>
         </div>
 
@@ -232,14 +246,14 @@ def render_bit_motion_frame(
                     top:42px; width:150px; height:105px;
                     border:3px solid {eve_border}; background:{eve_color}; border-radius:18px;
                     text-align:center; padding-top:18px; font-weight:900;
-                    font-size:24px; display:{eve_display}; z-index:10;'>
+                    font-size:24px; display:{eve_display}; z-index:10; box-sizing:border-box;'>
           Eve<br><span style='font-size:20px;'>{eve_label}</span>
         </div>
 
         <div style='position:absolute; right:2%; top:50px; width:150px; height:90px;
                     border:3px solid #16a34a; background:#dcfce7; border-radius:18px;
                     text-align:center; padding-top:18px; font-weight:900;
-                    font-size:24px; z-index:5;'>
+                    font-size:24px; z-index:5; box-sizing:border-box;'>
           Bob<br><span style='font-size:36px;'>RX</span>
         </div>
 
@@ -259,15 +273,27 @@ def render_bit_motion_frame(
         </div>
       </div>
 
-      <div style='margin-top:20px;'>
-        <div style='font-size:22px; font-weight:800;'>Alice送信列</div>
-        <div style='line-height:{row_height}px; margin-bottom:24px;'>
-          {bit_list_to_html(alice_bits, index, max_len=total, bit_size=bit_size)}
+      <div style='margin-top:24px;'>
+        <div style='font-size:22px; font-weight:800; margin-bottom:10px;'>Alice送信列</div>
+        <div style='margin-bottom:34px;'>
+          {bit_list_to_html(
+              alice_bits,
+              index,
+              max_len=total,
+              bits_per_row=bits_per_row,
+              bit_size=bit_size
+          )}
         </div>
 
-        <div style='font-size:22px; font-weight:800;'>Bob受信列</div>
-        <div style='line-height:{row_height}px; margin-bottom:40px;'>
-          {bit_list_to_html(bob_results, index, max_len=total, bit_size=bit_size)}
+        <div style='font-size:22px; font-weight:800; margin-bottom:10px;'>Bob受信列</div>
+        <div style='margin-bottom:80px;'>
+          {bit_list_to_html(
+              bob_results,
+              index,
+              max_len=total,
+              bits_per_row=bits_per_row,
+              bit_size=bit_size
+          )}
         </div>
       </div>
 
