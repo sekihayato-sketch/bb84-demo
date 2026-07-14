@@ -490,13 +490,13 @@ if st.button("シミュレーション実行", type="primary"):
                 f"アニメーションは表示負荷を避けるため先頭 {animated_bits} bit のみ表示しています。"
             )
 
-    animate_bit_transmission(
-        alice_bits=alice_bits,
-        bob_results=bob_results,
-        eve_intervened=eve_intervened,
-        max_bits=animated_bits,
-        frame_delay=0.08
-    )
+        animate_bit_transmission(
+            alice_bits=alice_bits,
+            bob_results=bob_results,
+            eve_intervened=eve_intervened,
+            max_bits=animated_bits,
+            frame_delay=0.08
+        )
     
     if show_animation:
         run_animation(alice_bits, alice_key, bob_key, corrected_bob_key, final_key, qber, can_generate_key)
