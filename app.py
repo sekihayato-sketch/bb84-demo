@@ -165,6 +165,15 @@ def render_bit_motion_frame(
     eve_border = "#dc2626" if eve_hit else "#9ca3af"
     eve_label = "Eve測定" if eve_hit else "Eve待機"
 
+    # 1行あたりの表示数
+    bits_per_row = 18
+
+    # Alice列 / Bob列が何行になるか計算
+    row_count = (total + bits_per_row - 1) // bits_per_row
+
+    # 行数に応じてHTMLコンポーネントの高さを増やす
+    component_height = 430 + row_count * 80
+
     ball_html = ""
     if show_ball:
         ball_html = f"""
@@ -173,7 +182,7 @@ def render_bit_motion_frame(
                     display:flex; align-items:center; justify-content:center;
                     font-size:30px; font-weight:900;
                     box-shadow:0 0 18px rgba(37,99,235,0.7);
-                    z-index:4;'>
+                    z-index:8;'>
           {bit}
         </div>
         """
@@ -192,21 +201,22 @@ def render_bit_motion_frame(
         <div style='position:absolute; left:2%; top:50px; width:150px; height:90px;
                     border:3px solid #2563eb; background:#dbeafe; border-radius:18px;
                     text-align:center; padding-top:18px; font-weight:900;
-                    font-size:24px; z-index:3;'>
+                    font-size:24px; z-index:5;'>
           Alice<br><span style='font-size:36px;'>TX</span>
         </div>
 
-        <div style='position:absolute; left:44%; top:42px; width:150px; height:105px;
+        <div style='position:absolute; left:50%; transform:translateX(-50%);
+                    top:42px; width:150px; height:105px;
                     border:3px solid {eve_border}; background:{eve_color}; border-radius:18px;
                     text-align:center; padding-top:18px; font-weight:900;
-                    font-size:24px; display:{eve_display}; z-index:6;'>
+                    font-size:24px; display:{eve_display}; z-index:10;'>
           Eve<br><span style='font-size:20px;'>{eve_label}</span>
         </div>
 
         <div style='position:absolute; right:2%; top:50px; width:150px; height:90px;
                     border:3px solid #16a34a; background:#dcfce7; border-radius:18px;
                     text-align:center; padding-top:18px; font-weight:900;
-                    font-size:24px; z-index:3;'>
+                    font-size:24px; z-index:5;'>
           Bob<br><span style='font-size:36px;'>RX</span>
         </div>
 
@@ -217,23 +227,23 @@ def render_bit_motion_frame(
 
         {ball_html}
 
-        <div style='position:absolute; left:2%; bottom:14px; font-size:18px; z-index:3;'>
+        <div style='position:absolute; left:2%; bottom:14px; font-size:18px; z-index:5;'>
           Alice bit = <b>{bit}</b>
         </div>
 
-        <div style='position:absolute; right:2%; bottom:14px; font-size:18px; z-index:3;'>
+        <div style='position:absolute; right:2%; bottom:14px; font-size:18px; z-index:5;'>
           Bob result = <b>{bob_bit}</b>
         </div>
       </div>
 
       <div style='margin-top:20px;'>
         <div style='font-size:22px; font-weight:800;'>Alice送信列</div>
-        <div>
+        <div style='line-height:2.7;'>
           {bit_list_to_html(alice_bits, index, max_len=total)}
         </div>
 
         <div style='margin-top:14px; font-size:22px; font-weight:800;'>Bob受信列</div>
-        <div>
+        <div style='line-height:2.7;'>
           {bit_list_to_html(bob_results, index, max_len=total)}
         </div>
       </div>
@@ -241,8 +251,7 @@ def render_bit_motion_frame(
     </div>
     """
 
-    components.html(html, height=560, scrolling=False)
-
+    components.html(html, height=component_height, scrolling=False)
 
 def animate_bit_transmission(
     alice_bits,
@@ -281,7 +290,7 @@ def animate_bit_transmission(
 
             time.sleep(frame_delay)
 
-    # 最終フレーム：最後のビットはハイライトしたまま、移動中のボールだけ消す
+    # 最終フレーム：最後のビットをハイライトし、移動中のボールだけ消す
     placeholder.empty()
     with placeholder.container():
         render_bit_motion_frame(
@@ -296,7 +305,7 @@ def animate_bit_transmission(
             bob_results=display_bob_results,
             show_ball=False
         )
-
+        
 def run_animation(alice_bits, alice_key, bob_key, corrected_bob_key, final_key, qber, can_generate_key):
     placeholder = st.empty()
     animation_steps = [
